@@ -1,5 +1,3 @@
-export default function Subscriptions() {
-    return (
-      <h1> Hello World</h1>
-    );
-  }
+export default function SubscriptionsPage() {
+  return <h1> Hello World</h1>;
+}

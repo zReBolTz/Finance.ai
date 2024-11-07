@@ -1,5 +1,3 @@
-export default function Transactions() {
-    return (
-      <h1> Hello World</h1>
-    );
-  }
+export default function TransactionsPage() {
+  return <h1> Hello World</h1>;
+}
