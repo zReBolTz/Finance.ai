@@ -42,6 +42,7 @@ import {
   TRANSACTION_TYPE_OPTIONS,
 } from "./_contants/transaction";
 import { DatePicker } from "./ui/date-picker";
+import { MoneyInput } from "./money-input";
 
 function onSubmit(values: FormSchema) {
   // Do something with the form values.
@@ -127,7 +128,7 @@ const AddTransactionButton = () => {
                   <FormItem>
                     <FormLabel>Valor</FormLabel>
                     <FormControl>
-                      <Input placeholder="Valor da transação" {...field} />
+                      <MoneyInput placeholder="Valor da transação" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
