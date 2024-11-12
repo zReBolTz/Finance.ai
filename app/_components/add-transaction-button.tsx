@@ -43,25 +43,27 @@ import {
 } from "./_contants/transaction";
 import { DatePicker } from "./ui/date-picker";
 import { MoneyInput } from "./money-input";
+import { addTransaction } from "../_actions/add-transaction";
+import { useState } from "react";
 
-function onSubmit(values: FormSchema) {
-  // Do something with the form values.
-  // ✅ This will be type-safe and validated.
-  console.log(values);
-}
 type FormSchema = z.infer<typeof formSchema>;
 
 const formSchema = z.object({
   name: z.string().min(1, {
     message: "O Nome é obrigatório",
   }),
-  amount: z.string().trim().min(1, {
-    message: "O Valor é obrigatório",
-  }),
+  amount: z
+    .number()
+    .min(1, {
+      message: "O Valor é obrigatório",
+    })
+    .positive({
+      message: "O Valor deve ser positivo",
+    }),
   type: z.nativeEnum(TransactionsType, {
     required_error: "O tipo é obrigatório",
   }),
-  category: z.nativeEnum(TransactionsCategory, {
+  categort: z.nativeEnum(TransactionsCategory, {
     required_error: "A categoria é obrigatória",
   }),
   paymentMethod: z.nativeEnum(TransactionsPaymentMehthod, {
@@ -73,13 +75,24 @@ const formSchema = z.object({
 });
 
 const AddTransactionButton = () => {
+  const onSubmit = async (data: FormSchema) => {
+    try {
+      await addTransaction(data);
+      setDialogIsOpen(false);
+      form.reset();
+    } catch (error) {
+      console.error(error);
+    }
+  };
+  const [DialogIsOpen, setDialogIsOpen] = useState(false);
+
   const form = useForm<FormSchema>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
-      amount: "",
+      amount: 1,
       type: "DEPOSIT",
-      category: "EDUCATION",
+      categort: "EDUCATION",
       paymentMethod: "BANK_SLIP",
       date: new Date(),
     },
@@ -87,7 +100,9 @@ const AddTransactionButton = () => {
   return (
     <div>
       <Dialog
+        open={DialogIsOpen}
         onOpenChange={(open) => {
+          setDialogIsOpen(open);
           if (!open) {
             form.reset();
           }
@@ -128,7 +143,14 @@ const AddTransactionButton = () => {
                   <FormItem>
                     <FormLabel>Valor</FormLabel>
                     <FormControl>
-                      <MoneyInput placeholder="Valor da transação" {...field} />
+                      <MoneyInput
+                        placeholder="Valor da transação"
+                        onValueChange={({ floatValue }) => {
+                          field.onChange(floatValue);
+                        }}
+                        onBlur={field.onBlur}
+                        disabled={field.disabled}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -193,7 +215,7 @@ const AddTransactionButton = () => {
 
               <FormField
                 control={form.control}
-                name="category"
+                name="categort"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Categoria</FormLabel>
