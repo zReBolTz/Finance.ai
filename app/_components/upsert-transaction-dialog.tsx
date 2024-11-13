@@ -40,7 +40,8 @@ import { DatePicker } from "./ui/date-picker";
 import { MoneyInput } from "./money-input";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { upsertTransaction } from "../_actions/add-transaction";
+import { upsertTransaction } from "../_actions/upsert-transaction";
+import { useEffect } from "react";
 
 interface UpsertTransactionDialogProps {
   isOpen: boolean;
@@ -94,6 +95,10 @@ const UpsertTransactionDialog = ({
       type: TransactionsType.EXPENSE,
     },
   });
+
+  useEffect(() => {
+    form.reset(defaultValues);
+  }, [defaultValues, form]);
 
   const onSubmit = async (data: FormSchema) => {
     try {
