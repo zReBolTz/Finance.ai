@@ -3,11 +3,23 @@ import { redirect } from "next/navigation";
 import NavBar from "../_components/navBar";
 import SummaryCards from "./_components/summary-cards";
 import TimeSelect from "./_components/time-select";
+import { isMatch } from "date-fns";
 
-const Home = async () => {
+interface homeProps {
+  searchParams: {
+    month: string;
+  };
+}
+
+const Home = async ({ searchParams: { month } }: homeProps) => {
   const { userId } = await auth();
   if (!userId) {
     redirect("/login");
+  }
+
+  const monthIsInvalid = !month || !isMatch(month, "MM");
+  if (monthIsInvalid) {
+    redirect("/?month=11");
   }
   return (
     <>
@@ -17,7 +29,7 @@ const Home = async () => {
           <h1 className="text-2xl font-bold">Dashboard</h1>
           <TimeSelect />
         </div>
-        <SummaryCards />
+        <SummaryCards month={month} />
       </div>
     </>
   );

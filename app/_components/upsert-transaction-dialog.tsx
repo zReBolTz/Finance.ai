@@ -155,6 +155,7 @@ const UpsertTransactionDialog = ({
                     <MoneyInput
                       placeholder="Digite o valor..."
                       value={field.value}
+                      // Erro do Input Aqui
                       onValueChange={({ floatValue }) =>
                         field.onChange(floatValue)
                       }

@@ -7,11 +7,21 @@ import {
 import SummaryCard from "./summary-card";
 import { db } from "@/app/_lib/prisma";
 
-const SummaryCards = async () => {
+interface SummaryCardProps {
+  month: string;
+}
+
+const SummaryCards = async ({ month }: SummaryCardProps) => {
+  const where = {
+    date: {
+      gte: new Date(`2024-${month}-01`),
+      lt: new Date(`2024-${month}-31`),
+    },
+  };
   const expensesTotal = Number(
     (
       await db.transactions.aggregate({
-        where: { type: "EXPENSE" },
+        where: { ...where, type: "EXPENSE" },
         _sum: { amount: true },
       })
     )?._sum?.amount,
@@ -19,7 +29,7 @@ const SummaryCards = async () => {
   const depositsTotal = Number(
     (
       await db.transactions.aggregate({
-        where: { type: "DEPOSIT" },
+        where: { ...where, type: "DEPOSIT" },
         _sum: { amount: true },
       })
     )?._sum?.amount,
@@ -27,7 +37,7 @@ const SummaryCards = async () => {
   const investimentsTotal = Number(
     (
       await db.transactions.aggregate({
-        where: { type: "INVESTIMENT" },
+        where: { ...where, type: "INVESTIMENT" },
         _sum: { amount: true },
       })
     )?._sum?.amount,
