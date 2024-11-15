@@ -4,6 +4,8 @@ import NavBar from "../_components/navBar";
 import SummaryCards from "./_components/summary-cards";
 import TimeSelect from "./_components/time-select";
 import { isMatch } from "date-fns";
+// import TransactionsPieChart from "./_components/transactions-pie-chart";
+import getDeshboard from "../_data/get-dashboard";
 
 interface homeProps {
   searchParams: {
@@ -17,6 +19,8 @@ const Home = async ({ searchParams: { month } }: homeProps) => {
     redirect("/login");
   }
 
+  const Dashboard = await getDeshboard(month);
+
   const monthIsInvalid = !month || !isMatch(month, "MM");
   if (monthIsInvalid) {
     redirect("/?month=11");
@@ -29,7 +33,13 @@ const Home = async ({ searchParams: { month } }: homeProps) => {
           <h1 className="text-2xl font-bold">Dashboard</h1>
           <TimeSelect />
         </div>
-        <SummaryCards month={month} />
+        <div className="grid grid-cols-[2fr,1fr]">
+          <SummaryCards month={month} {...Dashboard} />
+        </div>
+
+        <div className="grid grid-cols-3 grid-rows-1 gap-6">
+          {/* <TransactionsPieChart {...Dashboard} /> */}
+        </div>
       </div>
     </>
   );
