@@ -1,22 +1,21 @@
 import { db } from "@/app/_lib/prisma";
-import { TransactionsType } from "@prisma/client";
-import { TransactionsPercentagePerType } from "./type";
 
-const getDeshboard = async (month: string) => {
+import { TotalExpensePerCategory, TransactionsPercentagePerType } from "./type";
+import { auth } from "@clerk/nextjs/server";
+import { TransactionsType } from "@prisma/client";
+
+export const getDashboard = async (month: string) => {
+  const { userId } = await auth();
+  if (!userId) {
+    throw new Error("Unauthorized");
+  }
   const where = {
+    userId,
     date: {
       gte: new Date(`2024-${month}-01`),
       lt: new Date(`2024-${month}-31`),
     },
   };
-  const expensesTotal = Number(
-    (
-      await db.transactions.aggregate({
-        where: { ...where, type: "EXPENSE" },
-        _sum: { amount: true },
-      })
-    )?._sum?.amount,
-  );
   const depositsTotal = Number(
     (
       await db.transactions.aggregate({
@@ -33,8 +32,15 @@ const getDeshboard = async (month: string) => {
       })
     )?._sum?.amount,
   );
-  const balance = depositsTotal - expensesTotal - investmentsTotal;
-
+  const expensesTotal = Number(
+    (
+      await db.transactions.aggregate({
+        where: { ...where, type: "EXPENSE" },
+        _sum: { amount: true },
+      })
+    )?._sum?.amount,
+  );
+  const balance = depositsTotal - investmentsTotal - expensesTotal;
   const transactionsTotal = Number(
     (
       await db.transactions.aggregate({
@@ -43,7 +49,6 @@ const getDeshboard = async (month: string) => {
       })
     )._sum.amount,
   );
-
   const typesPercentage: TransactionsPercentagePerType = {
     [TransactionsType.DEPOSIT]: Math.round(
       (Number(depositsTotal || 0) / Number(transactionsTotal)) * 100,
@@ -55,21 +60,36 @@ const getDeshboard = async (month: string) => {
       (Number(investmentsTotal || 0) / Number(transactionsTotal)) * 100,
     ),
   };
-
+  const totalExpensePerCategory: TotalExpensePerCategory[] = (
+    await db.transactions.groupBy({
+      by: ["categort"],
+      where: {
+        ...where,
+        type: TransactionsType.EXPENSE,
+      },
+      _sum: {
+        amount: true,
+      },
+    })
+  ).map((category) => ({
+    category: category.categort,
+    totalAmount: Number(category._sum.amount),
+    percentageOfTotal: Math.round(
+      (Number(category._sum.amount) / Number(expensesTotal)) * 100,
+    ),
+  }));
   const lastTransactions = await db.transactions.findMany({
     where,
     orderBy: { date: "desc" },
     take: 15,
   });
-
   return {
     balance,
     depositsTotal,
     investmentsTotal,
     expensesTotal,
     typesPercentage,
+    totalExpensePerCategory,
     lastTransactions: JSON.parse(JSON.stringify(lastTransactions)),
   };
 };
-
-export default getDeshboard;
